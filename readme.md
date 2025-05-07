@@ -1,4 +1,4 @@
-# 📚 ME-CHAT – Student Social Platform for Messina University 🎓🇮🇹
+# 📚 ME-CHAT – Student Social Platform for  University Students  🎓🇮🇹
 
 Welcome to **ME-CHAT**, a full-stack social web platform designed to bring students  together! It's like Facebook meets Reddit meets Uni Survival Kit – made for and by students.
 
