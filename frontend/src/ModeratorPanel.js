@@ -1,0 +1,88 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import './App.css';
+
+const ModeratorPanel = ({ onLogout }) => {
+  const navigate = useNavigate();
+  const [posts, setPosts] = useState([]);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const fetchUserAndPosts = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      try {
+        const userResponse = await axios.get('http://localhost:5000/me', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setUser(userResponse.data);
+
+        const postsResponse = await axios.get('http://localhost:5000/posts', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setPosts(postsResponse.data);
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        localStorage.removeItem('token');
+        onLogout(); // Call the logout handler
+        navigate('/login');
+      }
+    };
+
+    fetchUserAndPosts();
+  }, [navigate, onLogout]);
+
+  const handleDelete = async (postId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`http://localhost:5000/posts/${postId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setPosts(posts.filter((post) => post.id !== postId));
+    } catch (err) {
+      console.error('Error deleting post:', err);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    onLogout(); // Call the logout handler
+    navigate('/', { replace: true });
+  };
+
+  return (
+    <div className="dashboard">
+      <nav className="navbar">
+        <div className="navbar-brand">ME-CHAT</div>
+        <div className="navbar-menu">
+          <span className="navbar-item">Welcome, {user?.name}</span>
+          <button className="navbar-item" onClick={handleLogout}>
+            Logout
+          </button>
+        </div>
+      </nav>
+      <div className="dashboard-content">
+        <h1>Moderator Panel</h1>
+        <div className="posts">
+          {posts.map((post) => (
+            <div key={post.id} className="post">
+              <p>{post.content}</p>
+              {post.image_url && <img src={`http://localhost:5000${post.image_url}`} alt="Post" />}
+              <p>Posted by {post.user_name} on {new Date(post.created_at).toLocaleString()}</p>
+              <button onClick={() => handleDelete(post.id)} className="delete-button">
+                Delete
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ModeratorPanel;
